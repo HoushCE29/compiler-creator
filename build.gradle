@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+// TODO make this into lib instead
+application {
+    mainClassName = 'dev.houshce29.cc.App'
+}
