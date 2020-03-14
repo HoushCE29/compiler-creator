@@ -6,7 +6,7 @@ import java.util.Objects;
  * A generic implementation of a token.
  */
 public class SimpleToken implements Token {
-    private static final String STRING_FORMAT = "@%d<%s, %s>";
+    private static final String STRING_FORMAT = "%s: %s";
     private final String id;
     private final String value;
     private final int lineNumber;
@@ -65,6 +65,6 @@ public class SimpleToken implements Token {
 
     @Override
     public String toString() {
-        return String.format(STRING_FORMAT, lineNumber, id, value);
+        return String.format(STRING_FORMAT, id, value);
     }
 }

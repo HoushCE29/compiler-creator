@@ -6,20 +6,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as being complex by nature.
- *
- * Use of this annotation is for maintenance purposes
- * only -- to mark potentially problematic code as being
- * something to look out for in the case of logged defects.
+ * Marks a method as containing potentially bad practice code.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Complex {
+public @interface BadPractice {
 
     /**
-     * @return The reason for the complexity.
+     * @return The things that are bad practice but
+     *         are at least temporarily justified.
      */
     String value();
 }
-
-

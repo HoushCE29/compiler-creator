@@ -30,7 +30,7 @@ public final class Lexer {
      * @param rawInput Raw input to pluck tokens out of.
      * @return Ordered list of tokens.
      */
-    @Complex
+    @Complex("Multi-loop dependency on primitive values.")
     public List<? extends Token> getTokens(String rawInput) {
         List<Token> tokens = new ArrayList<>();
         Context context = new Context();
