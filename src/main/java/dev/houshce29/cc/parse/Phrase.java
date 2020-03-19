@@ -37,6 +37,31 @@ public class Phrase implements IdentifiableGrammarComponent {
         return id;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("  ")
+                .append(getId());
+        if (sentences.isEmpty()) {
+            return builder.append("\n").toString();
+        }
+        builder.append(" ::= ");
+        String spacer = builder
+                .substring(0, builder.length() - 2)
+                .replaceAll(".", " ");
+
+        for (int i = 0; i < sentences.size(); i++) {
+            for (String word : sentences.get(i)) {
+                builder.append(word).append(" ");
+            }
+            builder.append("\n");
+            if (i < sentences.size() - 1) {
+                builder.append(spacer).append("| ");
+            }
+        }
+
+        return builder.toString();
+    }
+
     public static Builder newBuilder(String id) {
         return new Builder(id);
     }

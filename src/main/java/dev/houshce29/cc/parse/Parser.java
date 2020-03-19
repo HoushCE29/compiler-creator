@@ -50,13 +50,27 @@ public final class Parser {
         }
     }
 
+    @Override
+    public String toString() {
+        return "PARSER\n" + grammar;
+    }
+
     /**
      * Returns a new parser from the grammar.
      * @param grammar Grammar that defines the parser.
      * @return New parser.
      */
-    public static Parser from(Grammar grammar) {
+    public static Parser of(Grammar grammar) {
         return new Parser(grammar);
+    }
+
+    /**
+     * Returns a new parser builder.
+     * @param rootPhraseId ID of the root phrase in the grammar.
+     * @return New builder instance.
+     */
+    public static Builder newBuilder(String rootPhraseId) {
+        return new Builder(rootPhraseId);
     }
 
     /**
@@ -98,6 +112,10 @@ public final class Parser {
         int depth = 0;
         SymbolTreeNode node = new SymbolTreeNode(phraseId);
         for (String id : sentence) {
+            // Unexpected token case for some recursive phrase
+            if (depth == tokens.size()) {
+                return Optional.empty();
+            }
             Optional<Phrase> phrase = find(id);
             // This is a phrase, thus need to dig in recursively and dig out children.
             // If this child does not parse out, this tree path does not work.
@@ -199,6 +217,62 @@ public final class Parser {
         private void clear() {
             this.token = NOTHING;
             this.remainingDistance = totalDistance;
+        }
+    }
+
+    /**
+     * Simplified builder for building a parser.
+     */
+    public static final class Builder {
+        private Phrase.Builder currentPhrase;
+        private Grammar.Builder grammar;
+
+        private Builder(String rootId) {
+            this.currentPhrase = Phrase.newBuilder(rootId);
+        }
+
+        /**
+         * Adds a sentence to the current phrase.
+         * @param sentence Sentence to be added to current phrase.
+         * @return This builder.
+         */
+        public Builder sentence(String... sentence) {
+            currentPhrase.addSentence(sentence);
+            return this;
+        }
+
+        /**
+         * Branches the grammar to start a new phrase definition.
+         * @param id ID of the next phrase.
+         * @return This builder, iterated to a new phrase.
+         */
+        public Builder branch(String id) {
+            applyCurrentPhrase();
+            currentPhrase = Phrase.newBuilder(id);
+            return this;
+        }
+
+        /**
+         * Builds the parser.
+         * @return New parser.
+         */
+        public Parser build() {
+            applyCurrentPhrase();
+            return Parser.of(grammar.build());
+        }
+
+        /**
+         * Internally adds the phrase to the grammar.
+         * If the grammar is null, then it's assumed that
+         * the current phrase is the root phrase.
+         */
+        private void applyCurrentPhrase() {
+            if (grammar == null) {
+                grammar = Grammar.from(currentPhrase.build());
+            }
+            else {
+                grammar.addPhrase(currentPhrase);
+            }
         }
     }
 }

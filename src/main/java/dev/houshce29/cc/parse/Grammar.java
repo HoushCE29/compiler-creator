@@ -35,6 +35,19 @@ public class Grammar {
         return phrases;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("  __GRAMMAR__ ::= ")
+                .append(root.getId())
+                .append("\n");
+
+        for (Phrase phrase : getPhrases().values()) {
+            builder.append(phrase);
+        }
+
+        return builder.toString();
+    }
+
     /**
      * Begins the creation of grammar by setting the starting phrase.
      * @param root Root phrase.

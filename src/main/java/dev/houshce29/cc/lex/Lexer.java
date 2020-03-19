@@ -72,6 +72,18 @@ public final class Lexer {
         return tokens;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("LEXER\n");
+        for (Pair<Pattern, Function<Context, ?>> provider : factory) {
+            builder.append("  ")
+                    .append(provider.getKey())
+                    .append("\n");
+        }
+
+        return builder.toString();
+    }
+
     /**
      * Maybe returns a single token
      * @param currentProvider Current factory function.

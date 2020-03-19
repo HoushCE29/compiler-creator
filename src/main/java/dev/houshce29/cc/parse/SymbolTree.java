@@ -48,6 +48,70 @@ public class SymbolTree {
     }
 
     /**
+     * Flattens this tree into an ordered list. Note that
+     * hierarchical elements (e.g. parent-child relationships)
+     * will be inline, such that:
+     *
+     * <pre>{@code
+     *     ROOT
+     *       SUM
+     *         LITERAL:1
+     *         PLUS:+
+     *         LITERAL:2
+     *       DIFF
+     *         LITERAL:3
+     *         MINUS:-
+     *         LITERAL:1
+     * }</pre>
+     *
+     * would become:
+     *
+     * <pre>{@code
+     *   [ROOT, SUM, LITERAL:1, PLUS:+, LITERAL:2, DIFF, LITERAL:3, MINUS:-, LITERAL:1]
+     * }</pre>
+     * @return
+     */
+    public List<IdentifiableGrammarComponent> flatten() {
+        return flatten(root);
+    }
+
+    /**
+     * Flattens this tree into a stringified, ordered list of grammar components.
+     * @return Flattened tree, with components as strings.
+     */
+    public List<String> flattenAsString() {
+        List<String> asString = new ArrayList<>();
+        for (IdentifiableGrammarComponent component : flatten()) {
+            StringBuilder builder = new StringBuilder(component.getId());
+            if (component instanceof Token) {
+                builder.append(":")
+                        .append(((Token) component).getValue());
+            }
+            asString.add(builder.toString());
+        }
+        return asString;
+    }
+
+    /**
+     * Recursively flattens a node's structure.
+     * @param node Node to flatten.
+     * @return Ordered list of grammar components.
+     */
+    private List<IdentifiableGrammarComponent> flatten(SymbolTreeNode node) {
+        List<IdentifiableGrammarComponent> flat = new ArrayList<>();
+        flat.add(node);
+        for (IdentifiableGrammarComponent component : node.getChildren()) {
+            if (component instanceof SymbolTreeNode) {
+                flat.addAll(flatten((SymbolTreeNode) component));
+            }
+            else {
+                flat.add(component);
+            }
+        }
+        return flat;
+    }
+
+    /**
      * Finds all components within the tree of the given type and ID.
      * @param id ID to search for.
      * @param type Type of component to return.

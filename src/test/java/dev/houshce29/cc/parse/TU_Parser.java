@@ -1,16 +1,18 @@
 package dev.houshce29.cc.parse;
 
+import dev.houshce29.cc.common.IdentifiableGrammarComponent;
 import dev.houshce29.cc.lex.SimpleToken;
 import dev.houshce29.cc.lex.Token;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class TU_Parser {
     private static final PlusToken PLUS = new PlusToken();
-    private static final MinusToken MINUS = new MinusToken();
     private static final Lp LP = new Lp();
     private static final Rp RP = new Rp();
 
@@ -22,27 +24,95 @@ public class TU_Parser {
 
     @Before
     public void beforeEach() {
-        parser = Parser.from(Grammar.from(Phrase.newBuilder("SIMPLE_MATH")
-                        .addSentence("ADD")
-                        .addSentence("SUBTRACT")
-                        .build())
-                .addPhrase(Phrase.newBuilder("ADD")
-                        .addSentence("EXPRESSION", "PLUS", "EXPRESSION")
-                        .build())
-                .addPhrase(Phrase.newBuilder("SUBTRACT")
-                        .addSentence("EXPRESSION", "MINUS", "EXPRESSION")
-                        .build())
-                .addPhrase(Phrase.newBuilder("EXPRESSION")
-                        .addSentence("LITERAL")
-                        .addSentence("LP", "ADD", "RP")
-                        .addSentence("LP", "SUBTRACT", "RP")
-                        .build())
-                .build());
+        parser  = Parser.newBuilder("ADDER")
+                    .sentence("ADD")
+                .branch("ADD")
+                    .sentence("EXPRESSION", "PLUS", "EXPRESSION")
+                .branch("EXPRESSION")
+                    .sentence("LITERAL")
+                    .sentence("LP", "ADD", "RP")
+                .build();
     }
 
     @Test
-    public void test() {
-        System.out.println(parser.parse(ADDER));
+    public void testParse() {
+        SymbolTree tree = parser.parse(ADDER);
+        System.out.println(parser);
+        System.out.println(tree);
+        Assert.assertEquals(3, tree.findTokens("LITERAL").size());
+        Assert.assertEquals(2, tree.findTokens("PLUS").size());
+        Assert.assertEquals(1, tree.findTokens("LP").size());
+        Assert.assertEquals(1, tree.findTokens("RP").size());
+        Assert.assertEquals(2, tree.findNodes("ADD").size());
+        Assert.assertEquals(4, tree.findNodes("EXPRESSION").size());
+
+        List<IdentifiableGrammarComponent> result = tree.flatten();
+        Assert.assertEquals(14, result.size());
+        assertNode(result.get(0), "ADDER");
+        assertNode(result.get(1), "ADD");
+        assertNode(result.get(2), "EXPRESSION");
+        assertToken(result.get(3), "LITERAL", "1");
+        assertToken(result.get(4), "PLUS", "+");
+        assertNode(result.get(5), "EXPRESSION");
+        assertToken(result.get(6), "LP", "(");
+        assertNode(result.get(7), "ADD");
+        assertNode(result.get(8), "EXPRESSION");
+        assertToken(result.get(9), "LITERAL", "2");
+        assertToken(result.get(10), "PLUS", "+");
+        assertNode(result.get(11), "EXPRESSION");
+        assertToken(result.get(12), "LITERAL", "3");
+        assertToken(result.get(13), "RP", ")");
+    }
+
+    @Test
+    public void testParseSyntaxError() {
+        List<Token> badSyntax = new ArrayList<>(ADDER);
+        // Put in a token that causes bad syntax
+        badSyntax.set(2, PLUS);
+        try {
+            parser.parse(badSyntax);
+            Assert.fail("Failed to catch bad syntax.");
+        }
+        catch (IllegalArgumentException ex) {
+            Assert.assertEquals("Syntax error near token '+' on line 0.", ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testParseUnexpectedToken() {
+        List<Token> unexpected = new ArrayList<>(ADDER);
+        // Append extra value to otherwise valid syntax
+        unexpected.add(PLUS);
+        try {
+            parser.parse(unexpected);
+            Assert.fail("Failed to catch bad syntax.");
+        }
+        catch (IllegalArgumentException ex) {
+            Assert.assertEquals("Unexpected token '+' on line 0.", ex.getMessage());
+        }
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testParseAmbiguousGrammar() {
+        Parser.newBuilder("AMBIGUOUS")
+                .sentence("AMBIGUOUS")
+                .build()
+                .parse(ADDER);
+    }
+
+    private void assertToken(IdentifiableGrammarComponent actual, String expectedId, String expectedValue) {
+        Assert.assertTrue(actual instanceof Token);
+        Assert.assertEquals(expectedValue, ((Token) actual).getValue());
+        assertId(actual, expectedId);
+    }
+
+    private void assertNode(IdentifiableGrammarComponent actual, String expectedId) {
+        Assert.assertTrue(actual instanceof SymbolTreeNode);
+        assertId(actual, expectedId);
+    }
+
+    private void assertId(IdentifiableGrammarComponent component, String expectedId) {
+        Assert.assertEquals(expectedId, component.getId());
     }
 
     private static final class PlusToken extends SimpleToken {
@@ -51,16 +121,6 @@ public class TU_Parser {
         }
 
         private PlusToken() {
-            this(0);
-        }
-    }
-
-    private static final class MinusToken extends SimpleToken {
-        private MinusToken(int lineNumber) {
-            super("MINUS", "-", lineNumber);
-        }
-
-        private MinusToken() {
             this(0);
         }
     }
