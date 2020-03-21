@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Default semantic analyzer. This analyzer does nothing.
  */
-public class DefaultSemanticAnalyzer implements SemanticAnalyzer {
+public final class DefaultSemanticAnalyzer implements SemanticAnalyzer {
 
     @Override
     public void analyze(List<Token> tokens, SymbolTree symbolTree) {

@@ -13,14 +13,18 @@ import java.util.regex.Pattern;
  * Service that builds tokens.
  */
 public final class Lexer {
-    private final List<Pair<Pattern, Function<Context, ?>>> factory;
+    public static final Lexer DEFAULT_LEXER = Lexer.newBuilder()
+            .on(RegexFactory.anything())
+                .doThrow(context -> new UnsupportedOperationException("No lexer definition for this compiler."))
+            .build();
+    private final List<Pair<Pattern, Function<ScanContext, ?>>> factory;
 
     /**
      * Privately creates a new lexer.
      * @param factory Ordered list of pairs (context => function) that creates tokens
      *                or errors out based on regex.
      */
-    private Lexer(List<Pair<Pattern, Function<Context, ?>>> factory) {
+    private Lexer(List<Pair<Pattern, Function<ScanContext, ?>>> factory) {
         this.factory = factory;
     }
 
@@ -31,9 +35,9 @@ public final class Lexer {
      * @return Ordered list of tokens.
      */
     @Complex("Multi-loop dependency on primitive values.")
-    public List<? extends Token> getTokens(String rawInput) {
+    public List<Token> getTokens(String rawInput) {
         List<Token> tokens = new ArrayList<>();
-        Context context = new Context();
+        ScanContext scanContext = new ScanContext();
         String scanned = "";
         int scanPosition = 0;
         // Scan the entire input length
@@ -42,12 +46,12 @@ public final class Lexer {
             boolean generated = false;
             // Try each provider in order
             __factoryProviderLoop__:
-            for (Pair<Pattern, Function<Context, ?>> provider : factory) {
+            for (Pair<Pattern, Function<ScanContext, ?>> provider : factory) {
                 // Set the end position by starting from the scan position and moving forward one by one
                 for (int endPosition = scanPosition; endPosition < rawInput.length(); endPosition++) {
                     // Scan a new substring
                     scanned = rawInput.substring(scanPosition, endPosition + 1);
-                    Optional<? extends Token> maybeToken = getToken(provider, context, scanned);
+                    Optional<? extends Token> maybeToken = getToken(provider, scanContext, scanned);
 
                     // If there's a token, generation was successful
                     if (maybeToken.isPresent()) {
@@ -66,7 +70,7 @@ public final class Lexer {
             } // end factory provider loop
             // If not generated, there was an unexpected token.
             if (!generated) {
-                throw new IllegalArgumentException("Invalid token [" + scanned + "] on line " + context.getLineNumber() + ".");
+                throw new IllegalArgumentException("Invalid token [" + scanned + "] on line " + scanContext.getLineNumber() + ".");
             }
         }
         return tokens;
@@ -75,7 +79,7 @@ public final class Lexer {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("LEXER\n");
-        for (Pair<Pattern, Function<Context, ?>> provider : factory) {
+        for (Pair<Pattern, Function<ScanContext, ?>> provider : factory) {
             builder.append("  ")
                     .append(provider.getKey())
                     .append("\n");
@@ -87,13 +91,13 @@ public final class Lexer {
     /**
      * Maybe returns a single token
      * @param currentProvider Current factory function.
-     * @param context Current state of the lexer.
+     * @param scanContext Current state of the lexer.
      * @param in Raw string input.
      * @return Optional maybe containing a token, if the provider doesn't contain an exception, which would
      *         have been raised prior to returning anything.
      */
-    private Optional<? extends Token> getToken(Pair<Pattern, Function<Context, ?>> currentProvider,
-                                               Context context,
+    private Optional<? extends Token> getToken(Pair<Pattern, Function<ScanContext, ?>> currentProvider,
+                                               ScanContext scanContext,
                                                String in) {
 
         // If no match, return empty
@@ -101,8 +105,8 @@ public final class Lexer {
             return Optional.empty();
         }
         // Obtain the object from the function
-        context.capture(in);
-        Object generated = currentProvider.getValue().apply(context);
+        scanContext.capture(in);
+        Object generated = currentProvider.getValue().apply(scanContext);
 
         // If a runtime exception, throw it to terminate compiler.
         if (generated instanceof RuntimeException) {
@@ -129,7 +133,7 @@ public final class Lexer {
      * Builder for creating new Lexers.
      */
     public static final class Builder {
-        private List<Pair<Pattern, Function<Context, ?>>> factory = new ArrayList<>();
+        private List<Pair<Pattern, Function<ScanContext, ?>>> factory = new ArrayList<>();
 
         private Builder() {
         }
@@ -161,7 +165,7 @@ public final class Lexer {
          * @param def Definition to push in.
          * @return This builder, for conveniently chaining methods together.
          */
-        private Builder push(Pair<Pattern, Function<Context, ?>> def) {
+        private Builder push(Pair<Pattern, Function<ScanContext, ?>> def) {
             factory.add(def);
             return this;
         }
@@ -188,7 +192,7 @@ public final class Lexer {
          *            string and returns a new token.
          * @return The token factory builder.
          */
-        public Builder doCreate(Function<Context, Token> def) {
+        public Builder doCreate(Function<ScanContext, Token> def) {
             return currentBuilder.push(Pair.of(Pattern.compile(currentRegex), def));
         }
 
@@ -199,7 +203,7 @@ public final class Lexer {
          *            string and returns a new exception to be thrown.
          * @return The token factory builder.
          */
-        public Builder doThrow(Function<Context, RuntimeException> def) {
+        public Builder doThrow(Function<ScanContext, RuntimeException> def) {
             return currentBuilder.push(Pair.of(Pattern.compile(currentRegex), def));
         }
     }

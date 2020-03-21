@@ -13,6 +13,7 @@ import java.util.Optional;
  * the grammar/syntax and then creates a symbol tree from them.
  */
 public final class Parser {
+    public static final Parser DEFAULT_PARSER = Parser.newBuilder("<EMPTY>").build();
     private final Grammar grammar;
 
     /**

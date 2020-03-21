@@ -19,7 +19,7 @@ public class TU_Lexer {
         lexer = Lexer.newBuilder()
                 // Increment the line number on line breaks.
                 .on(RegexFactory.lineSeparatorRegex())
-                    .doCreate(Context::incrementLineNumberAndIgnore)
+                    .doCreate(ScanContext::incrementLineNumberAndIgnore)
 
                 // Ignore spaces, tabs, line breaks, etc.
                 .on(RegexFactory.anyAmountWhitespaceRegex())

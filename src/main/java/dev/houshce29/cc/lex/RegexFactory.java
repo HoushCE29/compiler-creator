@@ -7,6 +7,7 @@ public class RegexFactory {
     private static final String ANY_WHITESPACE_REGEX = "\\s";
     private static final String ANY_LENGTH_WHITESPACE_REGEX = ANY_WHITESPACE_REGEX + "*";
     private static final String LINE_SEPARATOR_REGEX = "\\R";
+    private static final String ANYTHING = ".*";
 
     /**
      * Prevent instantiation.
@@ -42,5 +43,12 @@ public class RegexFactory {
      */
     public static String anyAmountWhitespaceRegex() {
         return ANY_LENGTH_WHITESPACE_REGEX;
+    }
+
+    /**
+     * @return The anything regex.
+     */
+    public static String anything() {
+        return ANYTHING;
     }
 }

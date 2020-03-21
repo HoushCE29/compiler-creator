@@ -10,7 +10,7 @@ import java.util.Map;
  *   * Line position
  *   * Variables
  */
-public final class Context {
+public final class ScanContext {
     private final Map<String, Object> variables = new HashMap<>();
     private String capturedValue = "";
     private int lineNumber = 1;
