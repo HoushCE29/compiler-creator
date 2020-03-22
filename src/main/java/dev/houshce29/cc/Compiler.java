@@ -93,7 +93,7 @@ public final class Compiler {
 
     private void compileNoExtensions(String input) {
         try {
-            List<Token> tokens = lexer.getTokens(input);
+            List<Token> tokens = lexer.lex(input);
             SymbolTree symbolTree = parser.parse(tokens);
             analyzer.analyze(tokens, symbolTree);
             generator.generate(tokens, symbolTree);
@@ -118,7 +118,7 @@ public final class Compiler {
 
         // Lex
         extensionEngine.run(HookPoint.BEFORE_LEX, input);
-        List<Token> tokens = lexer.getTokens(input);
+        List<Token> tokens = lexer.lex(input);
         extensionEngine.run(HookPoint.AFTER_LEX, tokens);
 
         // Parse

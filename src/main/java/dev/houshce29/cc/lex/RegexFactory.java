@@ -7,7 +7,10 @@ public class RegexFactory {
     private static final String ANY_WHITESPACE_REGEX = "\\s";
     private static final String ANY_LENGTH_WHITESPACE_REGEX = ANY_WHITESPACE_REGEX + "*";
     private static final String LINE_SEPARATOR_REGEX = "\\R";
-    private static final String ANYTHING = ".*";
+    private static final String ANYTHING_REGEX = ".*";
+    private static final String ANY_NUMBER_REGEX = "-?[0-9]+|-?[0-9]*\\.[0-9]+";
+    private static final String ANY_BOOLEAN_REGEX = "true|false";
+    private static final String ANY_STRING_LITERAL_REGEX = "\\\".*\\\"";
 
     /**
      * Prevent instantiation.
@@ -46,9 +49,30 @@ public class RegexFactory {
     }
 
     /**
+     * @return Regex for any string literal between DOUBLE quotes.
+     */
+    public static String stringLiteralRegex() {
+        return ANY_STRING_LITERAL_REGEX;
+    }
+
+    /**
+     * @return Regex for any number literal (negative, integers, floating point, etc.).
+     */
+    public static String numberLiteralRegex() {
+        return ANY_NUMBER_REGEX;
+    }
+
+    /**
+     * @return Boolean literals (true or false).
+     */
+    public static String booleanLiteralRegex() {
+        return ANY_BOOLEAN_REGEX;
+    }
+
+    /**
      * @return The anything regex.
      */
-    public static String anything() {
-        return ANYTHING;
+    public static String anythingRegex() {
+        return ANYTHING_REGEX;
     }
 }

@@ -19,43 +19,43 @@ public class TU_Lexer {
         lexer = Lexer.newBuilder()
                 // Increment the line number on line breaks.
                 .on(RegexFactory.lineSeparatorRegex())
-                    .doCreate(ScanContext::incrementLineNumberAndIgnore)
+                    .create(ScanContext::incrementLineNumberAndIgnore)
 
                 // Ignore spaces, tabs, line breaks, etc.
                 .on(RegexFactory.anyAmountWhitespaceRegex())
-                    .doCreate(in -> new IgnoredToken())
+                    .create(in -> new IgnoredToken())
 
                 // Ignore comments
                 .on("\\{.*\\}")
-                    .doCreate(in -> new IgnoredToken("__COMMENT__", in.getCapturedValue(), in.getLineNumber()))
+                    .create(in -> new IgnoredToken("__COMMENT__", in.getCapturedValue(), in.getLineNumber()))
 
                 .on("the|is")
-                    .doCreate(in -> new ArticleToken(in.getCapturedValue(), in.getLineNumber()))
+                    .create(in -> new ArticleToken(in.getCapturedValue(), in.getLineNumber()))
 
                 .on("morning|day|night")
-                    .doCreate(in -> new WhenToken(in.getCapturedValue(), in.getLineNumber()))
+                    .create(in -> new WhenToken(in.getCapturedValue(), in.getLineNumber()))
 
                 .on("time")
-                    .doCreate(in -> new TimeToken(in.getLineNumber()))
+                    .create(in -> new TimeToken(in.getLineNumber()))
 
                 .on("rooster|cow|pig")
-                    .doCreate(in -> new AnimalToken(in.getCapturedValue(), in.getLineNumber()))
+                    .create(in -> new AnimalToken(in.getCapturedValue(), in.getLineNumber()))
 
                 .on("says|eats|produces|does")
-                    .doCreate(in -> new ActionToken(in.getCapturedValue(), in.getLineNumber()))
+                    .create(in -> new ActionToken(in.getCapturedValue(), in.getLineNumber()))
 
                 .on("'.*'")
-                    .doCreate(in -> new StringLiteralToken(in.getCapturedValue().trim().replaceAll("'", ""),
+                    .create(in -> new StringLiteralToken(in.getCapturedValue().trim().replaceAll("'", ""),
                                                            in.getLineNumber()))
 
                 .on("TORNADO")
-                    .doThrow(in -> new IncorrectException(in.getCapturedValue(), in.getLineNumber()))
+                    .error(in -> new IncorrectException(in.getCapturedValue(), in.getLineNumber()))
                 .build();
     }
 
     @Test
     public void testLexerBuildsTokensOnRegex() {
-        List<? extends Token> tokens = lexer.getTokens(PROGRAM);
+        List<? extends Token> tokens = lexer.lex(PROGRAM);
         Assert.assertEquals(8, tokens.size());
         validateToken(tokens.get(0), "ARTICLE", "the", 2);
         validateToken(tokens.get(1), "TIME", "time", 2);
@@ -70,13 +70,13 @@ public class TU_Lexer {
     @Test(expected = IncorrectException.class)
     public void testLexerThrowsExceptionOnRegex() {
         String badProgram = PROGRAM + " TORNADO";
-        lexer.getTokens(badProgram);
+        lexer.lex(badProgram);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testLexerThrowsExceptionWhenNoRegexMatch() {
         String badProgram = PROGRAM + " whales";
-        lexer.getTokens(badProgram);
+        lexer.lex(badProgram);
     }
 
     private void validateToken(Token token, String expectedId, String expectedValue, int expectedLineNumber) {

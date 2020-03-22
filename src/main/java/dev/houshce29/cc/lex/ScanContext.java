@@ -38,6 +38,13 @@ public final class ScanContext {
      */
     public IgnoredToken incrementLineNumberAndIgnore() {
         incrementLineNumber();
+        return ignore();
+    }
+
+    /**
+     * @return Default ignored token.
+     */
+    public IgnoredToken ignore() {
         return new IgnoredToken();
     }
 

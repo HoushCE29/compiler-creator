@@ -33,6 +33,15 @@ public class SimpleToken implements Token {
         this(idAndValue, idAndValue, lineNumber);
     }
 
+    /**
+     * Creates a new simple token.
+     * @param id Unique identifier of this token.
+     * @param scanned Scan context to pluck value and line number from.
+     */
+    public SimpleToken(String id, ScanContext scanned) {
+        this(id, scanned.getCapturedValue(), scanned.getLineNumber());
+    }
+
     @Override
     public final String getValue() {
         return value;

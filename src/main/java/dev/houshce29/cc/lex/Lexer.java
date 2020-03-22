@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
  */
 public final class Lexer {
     public static final Lexer DEFAULT_LEXER = Lexer.newBuilder()
-            .on(RegexFactory.anything())
-                .doThrow(context -> new UnsupportedOperationException("No lexer definition for this compiler."))
+            .on(RegexFactory.anythingRegex())
+                .error(context -> new UnsupportedOperationException("No lexer definition for this compiler."))
             .build();
     private final List<Pair<Pattern, Function<ScanContext, ?>>> factory;
 
@@ -35,7 +35,7 @@ public final class Lexer {
      * @return Ordered list of tokens.
      */
     @Complex("Multi-loop dependency on primitive values.")
-    public List<Token> getTokens(String rawInput) {
+    public List<Token> lex(String rawInput) {
         List<Token> tokens = new ArrayList<>();
         ScanContext scanContext = new ScanContext();
         String scanned = "";
@@ -192,7 +192,7 @@ public final class Lexer {
          *            string and returns a new token.
          * @return The token factory builder.
          */
-        public Builder doCreate(Function<ScanContext, Token> def) {
+        public Builder create(Function<ScanContext, Token> def) {
             return currentBuilder.push(Pair.of(Pattern.compile(currentRegex), def));
         }
 
@@ -203,7 +203,7 @@ public final class Lexer {
          *            string and returns a new exception to be thrown.
          * @return The token factory builder.
          */
-        public Builder doThrow(Function<ScanContext, RuntimeException> def) {
+        public Builder error(Function<ScanContext, RuntimeException> def) {
             return currentBuilder.push(Pair.of(Pattern.compile(currentRegex), def));
         }
     }
