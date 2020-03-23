@@ -28,15 +28,9 @@ public final class JsonParserFactory {
                     .sentence("JSON_OBJECT")
                     .sentence("STRING_LITERAL")
                     .sentence("BOOLEAN_LITERAL")
-                    .sentence("NUMBER_VALUE")
+                    .sentence("NUMBER_LITERAL")
                     // [$value . . .
                     .sentence("L_SQ_BRACKET", "VALUE", "ARRAY_END")
-                // Known limitation of numeric literals: lexer will
-                // match with the first found numeric literal and create
-                // a token per each digit. This groups them together.
-                .branch("NUMBER_VALUE")
-                    .sentence("NUMBER_LITERAL", "NUMBER_VALUE")
-                    .sentence("NUMBER_LITERAL")
                 .branch("ARRAY_END")
                     // . . . , $value . . .
                     .sentence("COMMA", "VALUE", "ARRAY_END")

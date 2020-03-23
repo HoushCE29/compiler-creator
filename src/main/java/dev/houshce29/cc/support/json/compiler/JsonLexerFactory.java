@@ -1,6 +1,7 @@
 package dev.houshce29.cc.support.json.compiler;
 
 import dev.houshce29.cc.lex.Lexer;
+import dev.houshce29.cc.lex.MatchingStrategy;
 import dev.houshce29.cc.lex.RegexFactory;
 import dev.houshce29.cc.lex.ScanContext;
 import dev.houshce29.cc.lex.SimpleToken;
@@ -28,7 +29,7 @@ public final class JsonLexerFactory {
                     .create(in -> new SimpleToken("STRING_LITERAL", in))
                 .on(RegexFactory.booleanLiteralRegex())
                     .create(in -> new SimpleToken("BOOLEAN_LITERAL", in))
-                .on(RegexFactory.numberLiteralRegex())
+                .on(RegexFactory.numberLiteralRegex(), MatchingStrategy.SPAN)
                     .create(in -> new SimpleToken("NUMBER_LITERAL", in))
                 .on("\\{")
                     .create(in -> new SimpleToken("L_BRACE", "{", in.getLineNumber()))
