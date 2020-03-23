@@ -1,13 +1,11 @@
 package dev.houshce29.cc.lex;
 
-import dev.houshce29.cc.internal.qa.Complex;
 import dev.houshce29.cc.common.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 /**
  * Service that builds tokens.
@@ -34,7 +32,6 @@ public final class Lexer {
      * @param rawInput Raw input to pluck tokens out of.
      * @return Ordered list of tokens.
      */
-    @Complex("Multi-loop dependency on primitive values.")
     public List<Token> lex(String rawInput) {
         List<Token> tokens = new ArrayList<>();
         ScanContext scanContext = new ScanContext();

@@ -2,21 +2,14 @@ package dev.houshce29.cc;
 
 import dev.houshce29.cc.analyze.DefaultSemanticAnalyzer;
 import dev.houshce29.cc.analyze.SemanticAnalyzer;
-import dev.houshce29.cc.extensions.ExtensionExecutionEngine;
-import dev.houshce29.cc.extensions.Hook;
-import dev.houshce29.cc.extensions.HookPoint;
-import dev.houshce29.cc.generate.CodeGenerator;
-import dev.houshce29.cc.generate.DefaultCodeGenerator;
+import dev.houshce29.cc.generate.DefaultGenerator;
+import dev.houshce29.cc.generate.Generator;
 import dev.houshce29.cc.lex.Lexer;
 import dev.houshce29.cc.lex.Token;
 import dev.houshce29.cc.parse.Parser;
 import dev.houshce29.cc.parse.SymbolTree;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Compiler that can be defined to fit any language.
@@ -25,118 +18,44 @@ public final class Compiler {
     private final Lexer lexer;
     private final Parser parser;
     private final SemanticAnalyzer analyzer;
-    private final CodeGenerator generator;
-    private final ExtensionExecutionEngine extensionEngine;
+    private final Generator generator;
 
     /**
      * Internally creates a new instance.
      * @param lexer Lexer for building tokens.
      * @param parser Parser for building AST.
      * @param analyzer Analyzer for semantics.
-     * @param generator Generator for code.
-     * @param extensions Extensions to this compiler.
+     * @param generator Generator for compiler.
      */
     private Compiler(Lexer lexer,
                      Parser parser,
                      SemanticAnalyzer analyzer,
-                     CodeGenerator generator,
-                     Collection<Hook> extensions) {
+                     Generator generator) {
 
         this.lexer = lexer;
         this.parser = parser;
         this.analyzer = analyzer;
         this.generator = generator;
-        this.extensionEngine = ExtensionExecutionEngine.create(extensions);
     }
 
     /**
      * Compiles the given input.
      * @param input Input to compile.
+     * @return Anything generated; if this is a code generator,
+     *         the returned value is likely `null`.
      */
-    public void compile(String input) {
-        // Compile with or without extensions
-        if (extensionEngine.hasExtensions()) {
-            compileWithExtensions(input);
-        }
-        else {
-            compileNoExtensions(input);
-        }
-    }
-
-    /**
-     * Extends this compiler by creating a copy of this compiler
-     * and applying the new extensions. It is important to emphasize
-     * that this will NOT change this instance of the compiler; the
-     * new extensions are applied to a clone of this bearing said
-     * extensions. A clone is what is returned by this method.
-     * @param extensions Extensions to apply to a clone of this compiler.
-     * @return New compiler instance containing the given extensions.
-     */
-    public Compiler extend(Hook... extensions) {
-        return extend(Arrays.asList(extensions));
-    }
-
-    /**
-     * Extends this compiler by creating a copy of this compiler
-     * and applying the new extensions. It is important to emphasize
-     * that this will NOT change this instance of the compiler; the
-     * new extensions are applied to a clone of this bearing said
-     * extensions. A clone is what is returned by this method.
-     * @param extensions Extensions to apply to a clone of this compiler.
-     * @return New compiler instance containing the given extensions.
-     */
-    public Compiler extend(Collection<Hook> extensions) {
-        Collection<Hook> newExtensions = extensionEngine.getExtensions();
-        newExtensions.addAll(extensions);
-        return new Compiler(lexer, parser, analyzer, generator, newExtensions);
-    }
-
-    private void compileNoExtensions(String input) {
+    public Object compile(String input) {
         try {
             List<Token> tokens = lexer.lex(input);
             SymbolTree symbolTree = parser.parse(tokens);
             analyzer.analyze(tokens, symbolTree);
-            generator.generate(tokens, symbolTree);
+            return generator.generate(tokens, symbolTree);
         }
         catch (Throwable t) {
             handleError(t);
         }
-    }
-
-    private void compileWithExtensions(String input) {
-        try {
-            compileWithExtensionsRaw(input);
-        }
-        catch (Throwable t) {
-            extensionEngine.runForFailure(t);
-            handleError(t);
-        }
-    }
-
-    private void compileWithExtensionsRaw(String input) {
-        extensionEngine.run(HookPoint.BEFORE_COMPILE, input);
-
-        // Lex
-        extensionEngine.run(HookPoint.BEFORE_LEX, input);
-        List<Token> tokens = lexer.lex(input);
-        extensionEngine.run(HookPoint.AFTER_LEX, tokens);
-
-        // Parse
-        extensionEngine.run(HookPoint.BEFORE_PARSE, tokens);
-        SymbolTree symbolTree = parser.parse(tokens);
-        extensionEngine.run(HookPoint.AFTER_PARSE, tokens, symbolTree);
-
-        // Semantic analyze
-        extensionEngine.run(HookPoint.BEFORE_SEMANTIC_ANALYSIS, tokens, symbolTree);
-        analyzer.analyze(tokens, symbolTree);
-        extensionEngine.run(HookPoint.AFTER_SEMANTIC_ANALYSIS, tokens, symbolTree);
-
-        // Code generate
-        extensionEngine.run(HookPoint.BEFORE_CODE_GENERATION, tokens, symbolTree);
-        generator.generate(tokens, symbolTree);
-        extensionEngine.run(HookPoint.AFTER_CODE_GENERATION, tokens, symbolTree);
-
-        extensionEngine.run(HookPoint.AFTER_COMPILE, tokens, symbolTree);
+        // Satisfy java compiler.
+        return null;
     }
 
     private void handleError(Throwable t) {
@@ -151,8 +70,7 @@ public final class Compiler {
         private Lexer lexer;
         private Parser parser;
         private SemanticAnalyzer analyzer;
-        private CodeGenerator generator;
-        private final List<Hook> hooks = new ArrayList<>();
+        private Generator generator;
 
         private Builder() {
         }
@@ -206,31 +124,12 @@ public final class Compiler {
         }
 
         /**
-         * Sets the code generator.
+         * Sets the generator.
          * @param generator Generator to set for this compiler.
          * @return This builder.
          */
-        public Builder setCodeGenerator(CodeGenerator generator) {
+        public Builder setGenerator(Generator generator) {
             this.generator = generator;
-            return this;
-        }
-
-        /**
-         * Adds one or more extensions to the compiler.
-         * @param hooks Extensions to add.
-         * @return This builder.
-         */
-        public Builder addExtensions(Hook... hooks) {
-            return addExtensions(Arrays.asList(hooks));
-        }
-
-        /**
-         * Add the collection of extensions to the compiler.
-         * @param hooks Extensions to add.
-         * @return This builder.
-         */
-        public Builder addExtensions(Collection<Hook> hooks) {
-            this.hooks.addAll(hooks);
             return this;
         }
 
@@ -257,10 +156,9 @@ public final class Compiler {
                 analyzer = new DefaultSemanticAnalyzer();
             }
             if (generator == null) {
-                generator = new DefaultCodeGenerator();
+                generator = new DefaultGenerator();
             }
-            hooks.removeIf(Objects::isNull);
-            return new Compiler(lexer, parser, analyzer, generator, hooks);
+            return new Compiler(lexer, parser, analyzer, generator);
         }
     }
 }
