@@ -79,6 +79,39 @@ public class TU_Lexer {
         lexer.lex(badProgram);
     }
 
+    @Test
+    public void testLexerWithSpanStrategy() {
+        Lexer spanLexer = Lexer.newBuilder()
+                .on("a+", MatchingStrategy.SPAN)
+                    .create(ctx -> new SimpleToken("A", ctx))
+                .on("xa", MatchingStrategy.SPAN)
+                    .create(ctx -> new SimpleToken("X_AND_A", ctx))
+                .build();
+
+        // Tokens should be aaa,xa,aaa instead of a,a,a,xa,a,a,a
+        List<Token> tokens = spanLexer.lex("aaaxaaaa");
+        Assert.assertEquals(3, tokens.size());
+        Assert.assertEquals("aaa", tokens.get(0).getValue());
+        Assert.assertEquals("xa", tokens.get(1).getValue());
+        Assert.assertEquals("aaa", tokens.get(2).getValue());
+    }
+
+    @Test
+    public void testLexerWithMaxStrategy() {
+        Lexer maxLexer = Lexer.newBuilder()
+                .on(".*a", MatchingStrategy.MAX)
+                    .create(ctx -> new SimpleToken("MAX_A", ctx))
+                .on("x", MatchingStrategy.MAX)
+                    .create(ctx -> new SimpleToken("X", ctx))
+                .build();
+
+        // Tokens should be axaxxa and x
+        List<Token> tokens = maxLexer.lex("axaxxax");
+        Assert.assertEquals(2, tokens.size());
+        Assert.assertEquals("axaxxa", tokens.get(0).getValue());
+        Assert.assertEquals("x", tokens.get(1).getValue());
+    }
+
     private void validateToken(Token token, String expectedId, String expectedValue, int expectedLineNumber) {
         Assert.assertEquals(expectedId, token.getId());
         Assert.assertEquals(expectedValue, token.getValue());
