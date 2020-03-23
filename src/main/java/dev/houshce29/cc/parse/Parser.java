@@ -1,7 +1,5 @@
 package dev.houshce29.cc.parse;
 
-import dev.houshce29.cc.internal.qa.BadPractice;
-import dev.houshce29.cc.internal.qa.Complex;
 import dev.houshce29.cc.lex.SimpleToken;
 import dev.houshce29.cc.lex.Token;
 
@@ -29,7 +27,6 @@ public final class Parser {
      * @param tokens Tokens to parse into symbol tree.
      * @return Symbol tree parsed from the tokens conforming to the base grammar.
      */
-    @BadPractice("Catch StackOverflowError.")
     public SymbolTree parse(List<Token> tokens) {
         try {
             ParseFailureSite failureSite = new ParseFailureSite(tokens);
@@ -103,7 +100,6 @@ public final class Parser {
      * @param site Reported failure site. Used to report parse failures.
      * @return Tree node if parsing against the current sentence resolves.
      */
-    @Complex("Multiple possible recursion paths relying on a common primitive value.")
     private Optional<SymbolTreeNode> parseUsingSentence(String phraseId,
                                                         List<String> sentence,
                                                         List<Token> tokens,

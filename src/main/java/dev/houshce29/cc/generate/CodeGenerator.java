@@ -6,14 +6,22 @@ import dev.houshce29.cc.parse.SymbolTree;
 import java.util.List;
 
 /**
- * The final part of the compiler that generates code.
+ * Simple abstraction for code generation, in which
+ * nothing is returned for consumption in the current
+ * Java runtime upon generation.
  */
-public interface CodeGenerator {
+public abstract class CodeGenerator implements Generator {
+
+    @Override
+    public Object generate(List<Token> tokens, SymbolTree symbolTree) {
+        generateCode(tokens, symbolTree);
+        return null;
+    }
 
     /**
-     * Generates code from the tokens and/or symbol tree.
-     * @param tokens List of tokens from the lex phase.
-     * @param symbolTree Symbol tree from the parse phase.
+     * Generates code from the tokens and symbol tree.
+     * @param tokens Tokens to aid in code generation.
+     * @param symbolTree Symbol tree to generate code from.
      */
-    void generate(List<Token> tokens, SymbolTree symbolTree);
+    abstract void generateCode(List<Token> tokens, SymbolTree symbolTree);
 }
