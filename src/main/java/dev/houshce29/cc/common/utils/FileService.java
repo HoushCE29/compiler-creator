@@ -19,6 +19,15 @@ public final class FileService {
     public static final String DEFAULT_LINE_BREAK_DELIMITER = "\n";
 
     /**
+     * Converts the path string into a file.
+     * @param path String representing a file.
+     * @return File object from the path string.
+     */
+    public static File getFile(String path) {
+        return Paths.get(path).toFile();
+    }
+
+    /**
      * Scans deeply to gather all files of the given extension.
      * @param start Root directory.
      * @param fileExtension File extension (including dot is optional).

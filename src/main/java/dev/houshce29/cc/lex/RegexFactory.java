@@ -10,7 +10,7 @@ public class RegexFactory {
     private static final String ANYTHING_REGEX = ".*";
     private static final String ANY_NUMBER_REGEX = "-?[0-9]+|-?[0-9]*\\.[0-9]+";
     private static final String ANY_BOOLEAN_REGEX = "true|false";
-    private static final String ANY_STRING_LITERAL_REGEX = "\\\".*\\\"";
+    private static final String ANY_STRING_LITERAL_REGEX = "\\\"([^\\\\\"]+|\\\\.|\\\\\\\\)*\\\"";
 
     /**
      * Prevent instantiation.

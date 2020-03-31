@@ -1,6 +1,6 @@
 package dev.houshce29.cc.parse;
 
-import dev.houshce29.cc.common.IdentifiableGrammarComponent;
+import dev.houshce29.cc.common.GrammarComponent;
 import dev.houshce29.cc.lex.Token;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class SymbolTree {
      * }</pre>
      * @return
      */
-    public List<IdentifiableGrammarComponent> flatten() {
+    public List<GrammarComponent> flatten() {
         return flatten(root);
     }
 
@@ -81,7 +81,7 @@ public class SymbolTree {
      */
     public List<String> flattenAsString() {
         List<String> asString = new ArrayList<>();
-        for (IdentifiableGrammarComponent component : flatten()) {
+        for (GrammarComponent component : flatten()) {
             StringBuilder builder = new StringBuilder(component.getId());
             if (component instanceof Token) {
                 builder.append(":")
@@ -97,10 +97,10 @@ public class SymbolTree {
      * @param node Node to flatten.
      * @return Ordered list of grammar components.
      */
-    private List<IdentifiableGrammarComponent> flatten(SymbolTreeNode node) {
-        List<IdentifiableGrammarComponent> flat = new ArrayList<>();
+    private List<GrammarComponent> flatten(SymbolTreeNode node) {
+        List<GrammarComponent> flat = new ArrayList<>();
         flat.add(node);
-        for (IdentifiableGrammarComponent component : node.getChildren()) {
+        for (GrammarComponent component : node.getChildren()) {
             if (component instanceof SymbolTreeNode) {
                 flat.addAll(flatten((SymbolTreeNode) component));
             }
@@ -118,7 +118,7 @@ public class SymbolTree {
      * @param <T> Type of component to return.
      * @return List of components of the given type and ID.
      */
-    public <T extends IdentifiableGrammarComponent> List<T> find(String id, Class<T> type) {
+    public <T extends GrammarComponent> List<T> find(String id, Class<T> type) {
         return findIn(root, id, type);
     }
 
@@ -127,7 +127,7 @@ public class SymbolTree {
      * @param path Path to select by.
      * @return Optional maybe containing the target grammar component.
      */
-    public Optional<IdentifiableGrammarComponent> select(String... path) {
+    public Optional<GrammarComponent> select(String... path) {
         return selectIn(root, Arrays.asList(path));
     }
 
@@ -144,9 +144,9 @@ public class SymbolTree {
      * @param <T> Type of component to return.
      * @return List of components of the given type and ID within the node.
      */
-    private <T extends IdentifiableGrammarComponent> List<T> findIn(SymbolTreeNode node, String id, Class<T> type) {
+    private <T extends GrammarComponent> List<T> findIn(SymbolTreeNode node, String id, Class<T> type) {
         List<T> found = new ArrayList<>();
-        for (IdentifiableGrammarComponent component : node.getChildren()) {
+        for (GrammarComponent component : node.getChildren()) {
             // Add if type and ID are equal
             if (type.isInstance(component) && id.equals(component.getId())) {
                 found.add(type.cast(component));
@@ -165,12 +165,12 @@ public class SymbolTree {
      * @param path Path to target a grammar component.
      * @return Optional maybe containing the target grammar component.
      */
-    private Optional<IdentifiableGrammarComponent> selectIn(SymbolTreeNode node, List<String> path) {
+    private Optional<GrammarComponent> selectIn(SymbolTreeNode node, List<String> path) {
         // Sanity check: empty list
         if (path.isEmpty()) {
             return Optional.empty();
         }
-        for (IdentifiableGrammarComponent component : node.getChildren()) {
+        for (GrammarComponent component : node.getChildren()) {
             // Strictly follow path
             if (component.getId().equals(path.get(0))) {
                 // If this is the target component, return it.

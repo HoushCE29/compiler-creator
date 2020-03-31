@@ -5,6 +5,7 @@ import dev.houshce29.cc.lex.Token;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 /**
  * Service that validates that the incoming tokens conform to
@@ -13,13 +14,16 @@ import java.util.Optional;
 public final class Parser {
     public static final Parser DEFAULT_PARSER = Parser.newBuilder("<EMPTY>").build();
     private final Grammar grammar;
+    private final BiConsumer<List<Token>, SymbolTree> afterFunction;
 
     /**
      * Privately creates new instance.
      * @param grammar Grammar to use for this parser.
+     * @param afterFunction Custom logic to run after parsing.
      */
-    private Parser(Grammar grammar) {
+    private Parser(Grammar grammar, BiConsumer<List<Token>, SymbolTree> afterFunction) {
         this.grammar = grammar;
+        this.afterFunction = afterFunction;
     }
 
     /**
@@ -41,7 +45,9 @@ public final class Parser {
                 Token token = tokens.get(tokenCount);
                 throw new IllegalArgumentException("Unexpected token '" + token.getValue() + "' on line " + token.getLineNumber() + ".");
             }
-            return new SymbolTree(root.get());
+            SymbolTree tree = new SymbolTree(root.get());
+            afterFunction.accept(tokens, tree);
+            return tree;
         }
         catch (StackOverflowError err) {
             throw new UnsupportedOperationException("FATAL: Parser's grammar is too deep or left-ambiguous.");
@@ -59,7 +65,7 @@ public final class Parser {
      * @return New parser.
      */
     public static Parser of(Grammar grammar) {
-        return new Parser(grammar);
+        return new Parser(grammar, (lt, st) -> {});
     }
 
     /**
@@ -82,7 +88,6 @@ public final class Parser {
         for (List<String> sentence : current.getSentences()) {
             Optional<SymbolTreeNode> node = parseUsingSentence(current.getId(), sentence, tokens, site);
             if (node.isPresent()) {
-                site.clear();
                 return node;
             }
         }
@@ -139,7 +144,6 @@ public final class Parser {
             }
         }
         // If the entire sentence is traversed, then a node is successfully formed.
-        site.clear();
         return Optional.of(node);
     }
 
@@ -223,9 +227,23 @@ public final class Parser {
     public static final class Builder {
         private Phrase.Builder currentPhrase;
         private Grammar.Builder grammar;
+        private BiConsumer<List<Token>, SymbolTree> afterFunction;
 
         private Builder(String rootId) {
             this.currentPhrase = Phrase.newBuilder(rootId);
+        }
+
+        /**
+         * Defines custom logic to run after parsing. This is a single-time
+         * piece of logic, and this is not unique per phrase/sentence. Note
+         * that this function will accept the exact same token list and symbol
+         * tree instances, thus they are mutable and can be modified.
+         * @param afterFunction Logic to run after all of parsing is complete.
+         * @return This builder.
+         */
+        public Builder after(BiConsumer<List<Token>, SymbolTree> afterFunction) {
+            this.afterFunction = afterFunction;
+            return this;
         }
 
         /**

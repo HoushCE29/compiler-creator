@@ -2,6 +2,7 @@ package dev.houshce29.cc;
 
 import dev.houshce29.cc.analyze.DefaultSemanticAnalyzer;
 import dev.houshce29.cc.analyze.SemanticAnalyzer;
+import dev.houshce29.cc.common.CompilationException;
 import dev.houshce29.cc.generate.DefaultGenerator;
 import dev.houshce29.cc.generate.Generator;
 import dev.houshce29.cc.lex.Lexer;
@@ -52,15 +53,15 @@ public final class Compiler {
             return generator.generate(tokens, symbolTree);
         }
         catch (Throwable t) {
-            handleError(t);
+            throw new CompilationException(t);
         }
-        // Satisfy java compiler.
-        return null;
     }
 
-    private void handleError(Throwable t) {
-        System.err.println(t.getMessage());
-        System.exit(-1);
+    /**
+     * @return New compiler builder instance.
+     */
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     /**

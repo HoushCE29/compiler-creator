@@ -1,6 +1,6 @@
 package dev.houshce29.cc.parse;
 
-import dev.houshce29.cc.common.IdentifiableGrammarComponent;
+import dev.houshce29.cc.common.GrammarComponent;
 import dev.houshce29.cc.lex.SimpleToken;
 import dev.houshce29.cc.lex.Token;
 import org.junit.Assert;
@@ -46,7 +46,7 @@ public class TU_Parser {
         Assert.assertEquals(2, tree.findNodes("ADD").size());
         Assert.assertEquals(4, tree.findNodes("EXPRESSION").size());
 
-        List<IdentifiableGrammarComponent> result = tree.flatten();
+        List<GrammarComponent> result = tree.flatten();
         Assert.assertEquals(14, result.size());
         assertNode(result.get(0), "ADDER");
         assertNode(result.get(1), "ADD");
@@ -100,18 +100,18 @@ public class TU_Parser {
                 .parse(ADDER);
     }
 
-    private void assertToken(IdentifiableGrammarComponent actual, String expectedId, String expectedValue) {
+    private void assertToken(GrammarComponent actual, String expectedId, String expectedValue) {
         Assert.assertTrue(actual instanceof Token);
         Assert.assertEquals(expectedValue, ((Token) actual).getValue());
         assertId(actual, expectedId);
     }
 
-    private void assertNode(IdentifiableGrammarComponent actual, String expectedId) {
+    private void assertNode(GrammarComponent actual, String expectedId) {
         Assert.assertTrue(actual instanceof SymbolTreeNode);
         assertId(actual, expectedId);
     }
 
-    private void assertId(IdentifiableGrammarComponent component, String expectedId) {
+    private void assertId(GrammarComponent component, String expectedId) {
         Assert.assertEquals(expectedId, component.getId());
     }
 

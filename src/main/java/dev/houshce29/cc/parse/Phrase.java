@@ -1,6 +1,6 @@
 package dev.houshce29.cc.parse;
 
-import dev.houshce29.cc.common.IdentifiableGrammarComponent;
+import dev.houshce29.cc.common.GrammarComponent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Represents a collection of tokens or other phrases that form grammar.
  */
-public class Phrase implements IdentifiableGrammarComponent {
+public class Phrase implements GrammarComponent {
     private final String id;
     private final List<List<String>> sentences;
 

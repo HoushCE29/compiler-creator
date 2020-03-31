@@ -5,6 +5,8 @@ import dev.houshce29.cc.common.utils.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -16,14 +18,18 @@ public final class Lexer {
                 .error(context -> new UnsupportedOperationException("No lexer definition for this compiler."))
             .build();
     private final List<Pair<InputMatcher, Function<ScanContext, ?>>> factory;
+    private final BiConsumer<String, List<Token>> afterFunction;
 
     /**
      * Privately creates a new lexer.
      * @param factory Ordered list of pairs (context => function) that creates tokens
      *                or errors out based on regex.
+     * @param afterFunction Custom logic to run after lexing.
      */
-    private Lexer(List<Pair<InputMatcher, Function<ScanContext, ?>>> factory) {
+    private Lexer(List<Pair<InputMatcher, Function<ScanContext, ?>>> factory,
+                  BiConsumer<String, List<Token>> afterFunction) {
         this.factory = factory;
+        this.afterFunction = afterFunction;
     }
 
     /**
@@ -106,6 +112,7 @@ public final class Lexer {
                 throw new IllegalArgumentException("Invalid token [" + scanned + "] on line " + scanContext.getLineNumber() + ".");
             }
         } // end main control loop
+        afterFunction.accept(rawInput, tokens);
         return tokens;
     }
 
@@ -167,6 +174,7 @@ public final class Lexer {
      */
     public static final class Builder {
         private List<Pair<InputMatcher, Function<ScanContext, ?>>> factory = new ArrayList<>();
+        private BiConsumer<String, List<Token>> afterFunction;
 
         private Builder() {
         }
@@ -203,11 +211,40 @@ public final class Lexer {
         }
 
         /**
+         * Defines a single piece of logic to run _after_ lexing has finished.
+         * This is a function that accepts the raw input and resulting tokens.
+         * Note that the passed in list is mutable and can be modified before
+         * moving onto the parser.
+         * @param afterFunction Function to run after lexing.
+         * @return This builder.
+         */
+        public Builder after(BiConsumer<String, List<Token>> afterFunction) {
+            this.afterFunction = afterFunction;
+            return this;
+        }
+
+        /**
+         * Defines a single piece of logic to run _after_ lexing has finished.
+         * This is a function that accepts the resulting tokens.
+         * Note that the passed in list is mutable and can be modified before
+         * moving onto the parser.
+         * @param afterFunction Function to run after lexing.
+         * @return This builder.
+         */
+        public Builder after(Consumer<List<Token>> afterFunction) {
+            this.afterFunction = (input, tokens) -> afterFunction.accept(tokens);
+            return this;
+        }
+
+        /**
          * Builds the Lexer.
          * @return New Lexer.
          */
         public Lexer build() {
-            return new Lexer(factory);
+            if (afterFunction == null) {
+                afterFunction = (s, lt) -> {};
+            }
+            return new Lexer(factory, afterFunction);
         }
 
         /**
