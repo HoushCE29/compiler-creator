@@ -1,5 +1,6 @@
 package dev.houshce29.cc.parse;
 
+import dev.houshce29.cc.common.CompilerComponent;
 import dev.houshce29.cc.lex.SimpleToken;
 import dev.houshce29.cc.lex.Token;
 
@@ -11,7 +12,7 @@ import java.util.function.BiConsumer;
  * Service that validates that the incoming tokens conform to
  * the grammar/syntax and then creates a symbol tree from them.
  */
-public final class Parser {
+public final class Parser implements CompilerComponent {
     public static final Parser DEFAULT_PARSER = Parser.newBuilder("<EMPTY>").build();
     private final Grammar grammar;
     private final BiConsumer<List<Token>, SymbolTree> afterFunction;

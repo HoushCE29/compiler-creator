@@ -58,6 +58,17 @@ public final class Compiler {
     }
 
     /**
+     * @return This compiler disassembled back into its builder.
+     */
+    public Builder toBuilder() {
+        return Compiler.newBuilder()
+                .setLexer(lexer)
+                .setParser(parser)
+                .setSemanticAnalyzer(analyzer)
+                .setGenerator(generator);
+    }
+
+    /**
      * @return New compiler builder instance.
      */
     public static Builder newBuilder() {

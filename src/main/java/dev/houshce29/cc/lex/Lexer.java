@@ -1,5 +1,6 @@
 package dev.houshce29.cc.lex;
 
+import dev.houshce29.cc.common.CompilerComponent;
 import dev.houshce29.cc.common.utils.Pair;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import java.util.function.Function;
 /**
  * Service that builds tokens.
  */
-public final class Lexer {
+public final class Lexer implements CompilerComponent {
     public static final Lexer DEFAULT_LEXER = Lexer.newBuilder()
             .on(RegexFactory.anythingRegex())
                 .error(context -> new UnsupportedOperationException("No lexer definition for this compiler."))

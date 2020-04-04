@@ -1,6 +1,5 @@
 plugins {
-    id 'java'
-    id 'application'
+    id 'java-library'
 }
 
 repositories {
@@ -11,7 +10,4 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-// TODO make this into lib instead
-application {
-    mainClassName = 'dev.houshce29.cc.App'
-}
+apply plugin: 'idea'; apply plugin: 'eclipse'

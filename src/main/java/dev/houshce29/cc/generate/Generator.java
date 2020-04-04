@@ -1,5 +1,6 @@
 package dev.houshce29.cc.generate;
 
+import dev.houshce29.cc.common.CompilerComponent;
 import dev.houshce29.cc.lex.Token;
 import dev.houshce29.cc.parse.SymbolTree;
 
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * The final part of the compiler that generates something.
  */
-public interface Generator {
+public interface Generator extends CompilerComponent {
 
     /**
      * Generates a final resulting entity as a result of

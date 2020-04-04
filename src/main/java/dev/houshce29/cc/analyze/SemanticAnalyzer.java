@@ -1,5 +1,6 @@
 package dev.houshce29.cc.analyze;
 
+import dev.houshce29.cc.common.CompilerComponent;
 import dev.houshce29.cc.lex.Token;
 import dev.houshce29.cc.parse.SymbolTree;
 
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * Analyzes the semantics of code.
  */
-public interface SemanticAnalyzer {
+public interface SemanticAnalyzer extends CompilerComponent {
 
     /**
      * Analyzes the compiled artifacts before proceeding to
