@@ -212,6 +212,15 @@ public final class Lexer implements CompilerComponent {
         }
 
         /**
+         * Ignores the given regex.
+         * @param regex Regex to ignore input matching for.
+         * @return This builder.
+         */
+        public Builder ignore(String regex) {
+            return on(regex).ignore();
+        }
+
+        /**
          * Defines a single piece of logic to run _after_ lexing has finished.
          * This is a function that accepts the raw input and resulting tokens.
          * Note that the passed in list is mutable and can be modified before
@@ -288,6 +297,34 @@ public final class Lexer implements CompilerComponent {
         }
 
         /**
+         * Simplification of the create method. This will auto-generate a
+         * function to create a SimpleToken instance of the given ID.
+         * @param id ID of the token to be generate in the function.
+         * @return The token factory builder.
+         */
+        public Builder generate(String id) {
+            return create(ctx -> new SimpleToken(id, ctx));
+        }
+
+        /**
+         * Ignores upon hitting the regex.
+         * @return The token factory builder.
+         */
+        public Builder ignore() {
+            return currentBuilder.push(Pair.of(
+                    new InputMatcher(currentRegex, strategy), ScanContext::ignore));
+        }
+
+        /**
+         * Defines a function to increment line number upon matching the regex.
+         * @return The token factory builder.
+         */
+        public Builder incrementLineNumber() {
+            return currentBuilder.push(Pair.of(
+                    new InputMatcher(currentRegex, strategy), ScanContext::incrementLineNumberAndIgnore));
+        }
+
+        /**
          * Defines a function to fire to create an exception to be thrown
          * when string input matches the regex defined.
          * @param def Function that takes in the line number and matching
@@ -296,6 +333,15 @@ public final class Lexer implements CompilerComponent {
          */
         public Builder error(Function<ScanContext, RuntimeException> def) {
             return currentBuilder.push(Pair.of(new InputMatcher(currentRegex, strategy), def));
+        }
+
+        /**
+         * Generates a simple function to create an exception to be thrown.
+         * @return The token factory builder.
+         */
+        public Builder error() {
+            return error(ctx -> new IllegalArgumentException(String.format(
+                    "Unexpected input '%s' on line %d.", ctx.getCapturedValue(), ctx.getLineNumber())));
         }
     }
 }

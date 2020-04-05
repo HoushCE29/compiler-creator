@@ -7,6 +7,7 @@ import dev.houshce29.cc.lex.Token;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Service that validates that the incoming tokens conform to
@@ -245,6 +246,18 @@ public final class Parser implements CompilerComponent {
         public Builder after(BiConsumer<List<Token>, SymbolTree> afterFunction) {
             this.afterFunction = afterFunction;
             return this;
+        }
+
+        /**
+         * Defines custom logic to run after parsing. This is a single-time
+         * piece of logic, and this is not unique per phrase/sentence. Note
+         * that this function will accept the exact same symbol
+         * tree instances thus it is mutable and can be modified.
+         * @param afterFunction Logic to run after all of parsing is complete.
+         * @return This builder.
+         */
+        public Builder after(Consumer<SymbolTree> afterFunction) {
+            return after((t, tree) -> afterFunction.accept(tree));
         }
 
         /**
